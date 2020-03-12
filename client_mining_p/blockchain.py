@@ -113,12 +113,13 @@ def mine():
     data = request.get_json()
 
     # Run the proof of work algorithm to get the next proof
-    previous_hash = blockchain.hash(blockchain.last_block)
+    block_string = json.dumps(blockchain.last_block, sort_keys=True)
+    previous_hash = blockchain.hash(block_string)
     proof = data['proof']
     # Forge the new Block by adding it to the chain with the proof
     print('testing proof')
-    if miner.valid_proof(previous_hash, proof):
-        if blockchain.valid_proof(previous_hash, proof):
+    if miner.valid_proof(block_string, proof):
+        if blockchain.valid_proof(block_string, proof):
             block = blockchain.new_block(proof, previous_hash)
             my_coins += 1
             response = {
