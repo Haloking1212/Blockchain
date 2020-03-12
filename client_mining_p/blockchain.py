@@ -5,8 +5,10 @@ from uuid import uuid4
 from client_mining_p import miner
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 my_coins = 0
+my_id = ''
 
 
 class Blockchain(object):
@@ -110,18 +112,42 @@ blockchain = Blockchain()
 @app.route('/mine', methods=['POST'])
 def mine():
     global my_coins
+    global my_id
     data = request.get_json()
+
+    try:
+        if data['proof'] and data['id'] != "":
+            pass
+        else:
+            response = {
+                'message': 'Please enter your id and proof!'
+            }
+            return jsonify(response), 400
+    except KeyError:
+        response = {
+            'message': 'Please enter your id and proof!'
+        }
+        return jsonify(response), 400
 
     # Run the proof of work algorithm to get the next proof
     block_string = json.dumps(blockchain.last_block, sort_keys=True)
-    previous_hash = blockchain.hash(block_string)
-    proof = data['proof']
+    previous_hash = blockchain.hash(blockchain.last_block)
+    proof = miner.proof_of_work(block_string)
     # Forge the new Block by adding it to the chain with the proof
     print('testing proof')
     if miner.valid_proof(block_string, proof):
         if blockchain.valid_proof(block_string, proof):
             block = blockchain.new_block(proof, previous_hash)
-            my_coins += 1
+            try:
+                my_id_txt = open('my_id.txt')
+                my_id = my_id_txt.readline()
+                my_id_txt.close()
+            except FileNotFoundError:
+                response = {
+                    'Error': 'No such file or directory!'
+                }
+                return jsonify(response), 404
+
             response = {
                 'new_block': block,
                 'message': f'You have generated a new block!  Current coins: {my_coins}'
@@ -151,6 +177,26 @@ def last_block():
     return jsonify(response), 200
 
 
+@app.route('/my_wallet', methods=['GET', 'PUT', 'POST'])
+def my_wallet():
+    if request.method == 'PUT':
+        response = {
+            'balance': my_coins + 1
+        }
+        return jsonify(response), 200
+    if request.method == 'GET':
+        response = {
+            'request': request.data
+        }
+        return jsonify(response), 200
+    if request.method == 'POST':
+        response = {
+            'id': request.get_json()
+        }
+        return jsonify(response), 200
+
+
 # Run the program on port 5000
 if __name__ == '__main__':
+    CORS(app)
     app.run(host='localhost', port=5000)
