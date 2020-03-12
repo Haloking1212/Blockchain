@@ -7,10 +7,6 @@ from client_mining_p import miner
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-my_coins = 0
-my_id = ''
-
-
 class Blockchain(object):
     def __init__(self):
         self.chain = []
@@ -111,8 +107,6 @@ blockchain = Blockchain()
 
 @app.route('/mine', methods=['POST'])
 def mine():
-    global my_coins
-    global my_id
     data = request.get_json()
 
     try:
@@ -134,27 +128,16 @@ def mine():
     previous_hash = blockchain.hash(blockchain.last_block)
     proof = miner.proof_of_work(block_string)
     # Forge the new Block by adding it to the chain with the proof
-    print('testing proof')
     if miner.valid_proof(block_string, proof):
         if blockchain.valid_proof(block_string, proof):
             block = blockchain.new_block(proof, previous_hash)
-            try:
-                my_id_txt = open('my_id.txt')
-                my_id = my_id_txt.readline()
-                my_id_txt.close()
-            except FileNotFoundError:
-                response = {
-                    'Error': 'No such file or directory!'
-                }
-                return jsonify(response), 404
-
             response = {
                 'new_block': block,
-                'message': f'You have generated a new block!  Current coins: {my_coins}'
+                'message': f'New Block Forged!'
             }
             return jsonify(response), 200
     response = {
-        'message': f'Proof is not valid! Current coins: {my_coins}'
+        'message': f'Proof is not valid!'
     }
     return jsonify(response), 400
 
@@ -181,7 +164,7 @@ def last_block():
 def my_wallet():
     if request.method == 'PUT':
         response = {
-            'balance': my_coins + 1
+            'balance': 0
         }
         return jsonify(response), 200
     if request.method == 'GET':
