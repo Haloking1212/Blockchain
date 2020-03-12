@@ -2,8 +2,11 @@ import hashlib
 import json
 from time import time
 from uuid import uuid4
+from client_mining_p import miner
 
 from flask import Flask, jsonify, request
+
+my_coins = 0
 
 
 class Blockchain(object):
@@ -91,8 +94,7 @@ class Blockchain(object):
 
         guess = f'{block_string}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-
-        return guess_hash[:6] == "000000"
+        return guess_hash[:3] == "000"
 
 
 # Instantiate our Node
@@ -105,20 +107,29 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
-@app.route('/mine', methods=['GET', 'POST'])
+@app.route('/mine', methods=['POST'])
 def mine():
+    global my_coins
+    data = request.get_json()
+
     # Run the proof of work algorithm to get the next proof
-    proof = blockchain.proof_of_work(blockchain.last_block)
-
-    # Forge the new Block by adding it to the chain with the proof
     previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
-
+    proof = data['proof']
+    # Forge the new Block by adding it to the chain with the proof
+    print('testing proof')
+    if miner.valid_proof(previous_hash, proof):
+        if blockchain.valid_proof(previous_hash, proof):
+            block = blockchain.new_block(proof, previous_hash)
+            my_coins += 1
+            response = {
+                'new_block': block,
+                'message': f'You have generated a new block!  Current coins: {my_coins}'
+            }
+            return jsonify(response), 200
     response = {
-        'new_block': block
+        'message': f'Proof is not valid! Current coins: {my_coins}'
     }
-
-    return jsonify(response), 200
+    return jsonify(response), 400
 
 
 @app.route('/chain', methods=['GET'])
@@ -131,9 +142,12 @@ def full_chain():
     return jsonify(response), 200
 
 
-@app.route('/last-block', methods=['GET'])
+@app.route('/last_block', methods=['GET'])
 def last_block():
-    return blockchain.chain[-1]
+    response = {
+        'last-block': blockchain.last_block
+    }
+    return jsonify(response), 200
 
 
 # Run the program on port 5000
