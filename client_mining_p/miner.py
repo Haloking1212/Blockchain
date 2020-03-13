@@ -75,8 +75,8 @@ if __name__ == '__main__':
         # TODO: If the server responds with a 'message' 'New Block Forged'
         # add 1 to the number of coins mined and print it.  Otherwise,
         # print the message from the server.
-        if data['message'] == 'New Block Forged!':
+        if data['message'] == 'New Block Forged':
             balance += 1
-            print(f'You were rewarded 1 coin! Current balance: {balance}')
+            print(f'{id} was rewarded 1 coin! Current balance: {balance}')
         else:
             print(data['message'])

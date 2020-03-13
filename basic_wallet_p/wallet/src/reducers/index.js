@@ -1,12 +1,14 @@
 import {
     UPDATE_MY_ID,
-    CREATE_MY_WALLET
+    CREATE_MY_WALLET,
+    GET_MY_WALLET
 } from '../actions'
 
-export const initialState = {
+const initialState = {
     wallet: {
         id: '',
-        coinBalance: 0
+        balance: 0,
+        transactions: []
     }
 }
 
@@ -18,8 +20,16 @@ export const reducer = (state = initialState, action) => {
                 id: action.payload
             }
         case CREATE_MY_WALLET:
+            console.log(action.payload)
             return {
-                ...action.payload
+                ...state,
+                wallet: action.payload
+            }
+        case GET_MY_WALLET:
+            console.log(action.payload)
+            return {
+                ...state,
+                wallet: action.payload
             }
         default:
             return {

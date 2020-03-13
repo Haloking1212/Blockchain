@@ -133,7 +133,7 @@ def mine():
             block = blockchain.new_block(proof, previous_hash)
             response = {
                 'new_block': block,
-                'message': f'New Block Forged!'
+                'message': f'New Block Forged'
             }
             return jsonify(response), 200
     response = {
@@ -169,7 +169,7 @@ def my_wallet():
         return jsonify(response), 200
     if request.method == 'GET':
         response = {
-            'request': request.data
+            'request': request.args
         }
         return jsonify(response), 200
     if request.method == 'POST':
